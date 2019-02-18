@@ -1,0 +1,143 @@
+{% extends 'base.html'%}
+{% load static %}
+{% block content %}
+  <!-- Portfolio Item Heading -->
+  <h1 class="my-4">{{ video.title }}
+    <small>{{ video.performer }}</small>
+  </h1>
+
+  <!-- Video Player Section -->
+  <div class="row">
+
+    <div class="col-md-8">
+      <video id="{{ video.id }}" class="video-js" controls preload="auto" width="730" height="405"
+  poster="{% static 'posters/'|add:video.filename|add:'.jpg' %}" data-setup="{}">
+        <source src="{% static 'videos/'|add:video.filename|add:'.'|add:video.filetype %}" type='video/{{ video.filetype }}'>
+        <p class="vjs-no-js">
+          To view this video please enable JavaScript, and consider upgrading to a web browser that
+          <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+        </p>
+      </video>
+      <h3 class="my-4" style="float:right;">Views: {{ video.view_count }}</h3>
+      <h3 class="my-4" style="float:left;">Recommended</h3>
+    </div>
+
+    <div class="col-md-4">
+      <h3 class="my-3">Description</h3>
+      <p>{{ video.description|linebreaks }}</p>
+
+    </div>
+
+  </div>
+  <!-- /.Video Player Section -->
+  <!-- Recommended section -->
+  <div class="row">
+
+    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+      <div class="card h-100">
+        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
+        <div class="card-body">
+          <h4 class="card-title">
+            <a href="#">Tokitokimekimeki
+              <small>3rd Gen</small>
+            </a>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+      <div class="card h-100">
+        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
+        <div class="card-body">
+          <h4 class="card-title">
+            <a href="#">Nichijou
+              <small>Unders</small>
+            </a>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+      <div class="card h-100">
+        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
+        <div class="card-body">
+          <h4 class="card-title">
+            <a href="#">Against
+              <small>1st Gen</small>
+            </a>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
+      <div class="card h-100">
+        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
+        <div class="card-body">
+          <h4 class="card-title">
+            <a href="#">Jiyuu no Kanata
+              <small>Unders</small>
+            </a>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /.row Recommended Section -->
+
+  <script>
+    /* SET THIS TO EMBED CSRF TOKEN IN EACH AJAX REQUEST */
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        function getCookie(name) {
+          var cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+          // Only send the token to relative URLs i.e. locally.
+          xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        }
+      }
+    });
+
+    function incrementViewAfter30Secs() {
+      $.ajax({
+        url: '{% url 'increment_view_count' %}',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({
+          'id': '{{ video.id }}'
+        }),
+        success: function(data) { console.log("View count incremented!"); },
+        failure: function(data) { console.log("An error occurred..."); },
+      });
+    }
+
+    var runAtTime = function(handler, time) {
+      var wrapped = function() {
+        if(this.currentTime >= time) {
+          $(this).off('timeupdate', wrapped);
+          return handler.apply(this, arguments);
+        }
+      }
+      return wrapped;
+    };
+
+    $('#{{ video.id }}').on('timeupdate', runAtTime(incrementViewAfter30Secs, 20)); 
+  </script>
+{% endblock %}
+
