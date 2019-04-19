@@ -6,9 +6,19 @@ from .models import VideoInfo
 
 import json
 
+def get_view_count(url):
+    import requests
+    response = requests.get(url)
+    json_res = response.json()
+    return int(json_res['countries'][0]['plays'])
 
 def list_videos(request):
     video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
+
+    # Update view_count for each video objects
+    for video in video_list:
+        video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+
     paginator = Paginator(video_list, 12)
     page = int(request.GET.get('page', 1))
     try:
@@ -31,6 +41,10 @@ def search_videos(request):
     elif search_type == "Performer":
         searched_video_list = VideoInfo.objects.filter(is_disabled=False).filter(performer__icontains=search_value)
 
+    # Update view_count for each video objects
+    for video in searched_video_list:
+        video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+
     return render(request, 'list.html', {'videos': searched_video_list})
 
 def view_video(request):
@@ -46,20 +60,11 @@ def view_video(request):
     if video.is_disabled == True:
         return HttpResponse(status=404)
 
+    # Extract video view count
+    view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+
     # Render template
-    return render(request, 'view.html', {'video': video})
-
-def increment_video_view_count(request):
-    if request.is_ajax() and request.method == 'POST':
-        video_id_json = json.loads(request.body)
-        video_id = video_id_json['id']
-
-        # Get video object from db using id and increment
-        video = get_object_or_404(VideoInfo, id=video_id)
-        video.increment_view_count()
-
-        return HttpResponse(status=200)
-    return HttpResponse(status=404)
+    return render(request, 'view.html', {'video': video, 'view_count': view_count})
 
     
 

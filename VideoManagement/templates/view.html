@@ -8,17 +8,9 @@
 
   <!-- Video Player Section -->
   <div class="row">
-
     <div class="col-md-8">
-      <video id="{{ video.id }}" class="video-js" controls preload="auto" width="730" height="405"
-  poster="{% static 'posters/'|add:video.filename|add:'.jpg' %}" data-setup="{}">
-        <source src="https://streamable.com/s/ffosh/hjxssf" type='video/mp4'>
-        <p class="vjs-no-js">
-          To view this video please enable JavaScript, and consider upgrading to a web browser that
-          <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-        </p>
-      </video>
-      <h3 class="my-4" style="float:right;">Views: {{ video.view_count }}</h3>
+      {{ video.embed_link | safe }}
+      <h3 class="my-4" style="float:right;">Views: {{ view_count }}</h3>
       <h3 class="my-4" style="float:left;">Recommended</h3>
     </div>
 
@@ -113,31 +105,6 @@
         }
       }
     });
-
-    function incrementViewAfter30Secs() {
-      $.ajax({
-        url: '{% url 'increment_view_count' %}',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify({
-          'id': '{{ video.id }}'
-        }),
-        success: function(data) { console.log("View count incremented!"); },
-        failure: function(data) { console.log("An error occurred..."); },
-      });
-    }
-
-    var runAtTime = function(handler, time) {
-      var wrapped = function() {
-        if(this.currentTime >= time) {
-          $(this).off('timeupdate', wrapped);
-          return handler.apply(this, arguments);
-        }
-      }
-      return wrapped;
-    };
-
-    $('#{{ video.id }}').on('timeupdate', runAtTime(incrementViewAfter30Secs, 20)); 
   </script>
 {% endblock %}
 

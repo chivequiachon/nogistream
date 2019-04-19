@@ -6,16 +6,12 @@ class VideoInfo(models.Model):
     description = models.TextField()
 
     filename = models.CharField(max_length=50)
-    #filetype = models.CharField(max_length=5)
+    real_id = models.CharField(max_length=15, default="Enter ID here")
     embed_link = models.CharField(max_length=350, default="Enter embed link here")
 
-    view_count = models.IntegerField(default=0, editable=False)
+    view_count = None
+
     is_disabled = models.BooleanField(default=False)
-
-    def increment_view_count(self, *args, **kwargs):
-        self.view_count = self.view_count + 1
-
-        super(VideoInfo, self).save(*args, **kwargs)
 
     def publish(self):
         self.save()
