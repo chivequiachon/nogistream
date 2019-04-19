@@ -8,7 +8,7 @@ import json
 
 
 def list_videos(request):
-    video_list = VideoInfo.objects.all().order_by('-id')
+    video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
     paginator = Paginator(video_list, 12)
     page = int(request.GET.get('page', 1))
     try:
@@ -27,9 +27,9 @@ def search_videos(request):
     search_value = search_value.replace('+', ' ')
 
     if search_type == "Title":
-        searched_video_list = VideoInfo.objects.filter(title__icontains=search_value)
+        searched_video_list = VideoInfo.objects.filter(is_disabled=False).filter(title__icontains=search_value)
     elif search_type == "Performer":
-        searched_video_list = VideoInfo.objects.filter(performer__icontains=search_value)
+        searched_video_list = VideoInfo.objects.filter(is_disabled=False).filter(performer__icontains=search_value)
 
     return render(request, 'list.html', {'videos': searched_video_list})
 
@@ -41,6 +41,10 @@ def view_video(request):
     
     # Get video object from db using id
     video = get_object_or_404(VideoInfo, id=video_id)
+
+    # Check if video is disabled
+    if video.is_disabled == True:
+        return HttpResponse(status=404)
 
     # Render template
     return render(request, 'view.html', {'video': video})
