@@ -13,11 +13,11 @@ def get_view_count(url):
     return int(json_res['countries'][0]['plays'])
 
 def list_videos(request):
-    video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
+    def update_view_count(videos):
+        for video in videos:
+            video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
 
-    # Update view_count for each video objects
-    for video in video_list:
-        video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+    video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
 
     paginator = Paginator(video_list, 12)
     page = int(request.GET.get('page', 1))
@@ -27,6 +27,9 @@ def list_videos(request):
         videos = paginator.page(1)
     except EmptyPage:
         videos = paginator.page(paginator.num_pages)
+    finally:
+        # Update view_count for each video objects
+        update_view_count(videos)
 
     return render(request, 'list.html', {'videos': videos})
 
@@ -60,11 +63,19 @@ def view_video(request):
     if video.is_disabled == True:
         return HttpResponse(status=404)
 
-    # Extract video view count
-    view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+    # Retrieve video view count
+    video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+
+    # Get random videos except the one being viewed
+    other_videos = VideoInfo.objects.filter(is_disabled=False).exclude(id=video_id)
+
+    # Retrieve other video's view count
+    for other_video in other_videos:
+            other_video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % other_video.real_id)
+
 
     # Render template
-    return render(request, 'view.html', {'video': video, 'view_count': view_count})
+    return render(request, 'view.html', {'video': video, 'other_videos': other_videos})
 
     
 

@@ -10,8 +10,8 @@
   <div class="row">
     <div class="col-md-8">
       {{ video.embed_link | safe }}
-      <h3 class="my-4" style="float:right;">Views: {{ view_count }}</h3>
-      <h3 class="my-4" style="float:left;">Recommended</h3>
+      <h3 class="my-4" style="float:right;">Views: {{ video.view_count }}</h3>
+      <h3 class="my-4" style="float:left;">Other Videos</h3>
     </div>
 
     <div class="col-md-4">
@@ -24,58 +24,21 @@
   <!-- /.Video Player Section -->
   <!-- Recommended section -->
   <div class="row">
-
+    {% for other_video in other_videos %}
     <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
       <div class="card h-100">
-        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
+        <a href="#"><img class="img-fluid" src="{% static 'thumbnails/'|add:other_video.filename|add:'.jpg'%}" alt=""></a>
         <div class="card-body">
           <h4 class="card-title">
-            <a href="#">Tokitokimekimeki
-              <small>3rd Gen</small>
+            <a href="{% url 'view_video' %}?id={{ other_video.id }}">{{ other_video.title }}
+              <small>{{ other_video.performer }}</small>
             </a>
           </h4>
+          <p class="card-text">Views: {{ other_video.view_count }}</p>
         </div>
       </div>
     </div>
-
-    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
-      <div class="card h-100">
-        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
-        <div class="card-body">
-          <h4 class="card-title">
-            <a href="#">Nichijou
-              <small>Unders</small>
-            </a>
-          </h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
-      <div class="card h-100">
-        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
-        <div class="card-body">
-          <h4 class="card-title">
-            <a href="#">Against
-              <small>1st Gen</small>
-            </a>
-          </h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
-      <div class="card h-100">
-        <a href="#"><img class="img-fluid" src="http://placehold.it/500x300" alt=""></a>
-        <div class="card-body">
-          <h4 class="card-title">
-            <a href="#">Jiyuu no Kanata
-              <small>Unders</small>
-            </a>
-          </h4>
-        </div>
-      </div>
-    </div>
+    {% endfor %}
 
   </div>
   <!-- /.row Recommended Section -->
