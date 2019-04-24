@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.conf import settings
+
+import requests
 
 from .models import VideoInfo
 
@@ -12,11 +15,21 @@ def get_view_count(url):
     json_res = response.json()
     return int(json_res['countries'][0]['plays'])
 
-def list_videos(request):
-    def update_view_count(videos):
-        for video in videos:
-            video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+def retrieve_view_count(videos):
+    url = settings.VIEW_COUNT_URL
+    char = '?'
+    for video in videos:
+        url += "%cid=%s" % (char, video.real_id)
+        char = '&'
 
+    response = requests.get(url)
+    print(url)
+    json_data = response.json()
+
+    for video in videos:
+        video.view_count = json_data[video.real_id]
+
+def list_videos(request):
     video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
 
     paginator = Paginator(video_list, 12)
@@ -29,7 +42,7 @@ def list_videos(request):
         videos = paginator.page(paginator.num_pages)
     finally:
         # Update view_count for each video objects
-        update_view_count(videos)
+        retrieve_view_count(videos)
 
     return render(request, 'list.html', {'videos': videos})
 
@@ -45,9 +58,8 @@ def search_videos(request):
         searched_video_list = VideoInfo.objects.filter(is_disabled=False).filter(performer__icontains=search_value)
 
     # Update view_count for each video objects
-    for video in searched_video_list:
-        video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
-
+    retrieve_view_count(searched_video_list)
+    
     return render(request, 'list.html', {'videos': searched_video_list})
 
 def view_video(request):
@@ -64,15 +76,14 @@ def view_video(request):
         return HttpResponse(status=404)
 
     # Retrieve video view count
-    video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % video.real_id)
+    response = requests.get(settings.VIEW_COUNT_URL + "?p=" + video.real_id)
+    video.view_count = (response.json())[video.real_id]
 
     # Get random videos except the one being viewed
     other_videos = VideoInfo.objects.filter(is_disabled=False).exclude(id=video_id)
 
     # Retrieve other video's view count
-    for other_video in other_videos:
-            other_video.view_count = get_view_count("https://ajax.streamable.com/%s/stats" % other_video.real_id)
-
+    retrieve_view_count(other_videos)
 
     # Render template
     return render(request, 'view.html', {'video': video, 'other_videos': other_videos})

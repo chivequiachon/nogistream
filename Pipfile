@@ -7,7 +7,7 @@ django = "*"
 gunicorn = "*"
 django-heroku = "*"
 requests = "*"
-pandas = "*"
+cloudinary = "*"
 
 [requires]
 python_version = "*"

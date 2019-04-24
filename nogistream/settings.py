@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
-import os, django_heroku
+import os, django_heroku, cloudinary
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,6 +26,8 @@ SECRET_KEY = 'wyk7=zy1556_v!&ka7^(k*lfkqpg5*mxdjm-f1ue@3b*q^&#a_'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+VIEW_COUNT_URL = "https://script.google.com/macros/s/AKfycbyEVnJMwkJ-mn_5qqYQlK77dZkdniB38P6x3a_VunGMrnYgOGc/exec"
 
 
 # Application definition
@@ -126,3 +128,12 @@ STATICFILES_DIRS = (
 )
 
 django_heroku.settings(locals())
+
+# Set cloudinary
+cloudinary.config( 
+  cloud_name = "dr031frrx", 
+  api_key = "348234738768825", 
+  api_secret = "B_z9QxrRd21a5qz3sLvKQLjIhXA" 
+)
+
+
