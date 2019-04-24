@@ -1,1 +1,1 @@
-web: gunicorn NogiOshi.wsgi
+web: gunicorn nogistream.wsgi
