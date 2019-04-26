@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
+from django.urls import reverse
 
 import requests
 
@@ -28,6 +29,9 @@ def retrieve_view_count(videos):
 
     for video in videos:
         video.view_count = json_data[video.real_id]
+
+def home_page(request):
+    return redirect(reverse('list_videos'))
 
 def list_videos(request):
     video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
