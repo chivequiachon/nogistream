@@ -129,9 +129,10 @@ STATICFILES_DIRS = (
 
 django_heroku.settings(locals())
 
+CLOUDINARY_NAME = "dr031frrx"
 # Set cloudinary
 cloudinary.config( 
-  cloud_name = "dr031frrx", 
+  cloud_name = CLOUDINARY_NAME, 
   api_key = "348234738768825", 
   api_secret = "B_z9QxrRd21a5qz3sLvKQLjIhXA" 
 )

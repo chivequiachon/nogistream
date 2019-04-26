@@ -36,7 +36,7 @@ def home_page(request):
 def list_videos(request):
     video_list = VideoInfo.objects.filter(is_disabled=False).order_by('-id')
 
-    paginator = Paginator(video_list, 12)
+    paginator = Paginator(video_list, 12) # Allow only 12 pages for each page
     page = int(request.GET.get('page', 1))
     try:
         videos = paginator.page(page)
@@ -48,7 +48,11 @@ def list_videos(request):
         # Update view_count for each video objects
         retrieve_view_count(videos)
 
-    return render(request, 'list.html', {'videos': videos})
+    # Create url for images stored in cloudinary
+    cloudinary_img_url = \
+        "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
+
+    return render(request, 'list.html', {'videos': videos, 'cloudinary_img_url': cloudinary_img_url})
 
 def search_videos(request):
     search_type = request.GET.get('type', None)
@@ -89,8 +93,18 @@ def view_video(request):
     # Retrieve other video's view count
     retrieve_view_count(other_videos)
 
+    # Create url for images stored in cloudinary
+    cloudinary_img_url = \
+        "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
+
     # Render template
-    return render(request, 'view.html', {'video': video, 'other_videos': other_videos})
+    return render(request, 'view.html', 
+        {
+            'video': video,
+            'other_videos': other_videos,
+            'cloudinary_img_url': cloudinary_img_url
+        }
+    )
 
     
 

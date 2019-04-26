@@ -27,7 +27,7 @@
     {% for other_video in other_videos %}
     <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
       <div class="card h-100">
-        <a href="#"><img class="img-fluid" src="{% static 'thumbnails/'|add:other_video.filename|add:'.jpg'%}" alt=""></a>
+        <a href="{% url 'view_video' %}?id={{ other_video.id }}"><img class="img-fluid" src="{{ cloudinary_img_url }}/{{ other_video.filename|add:'.jpg' }}" alt=""></a>
         <div class="card-body">
           <h4 class="card-title">
             <a href="{% url 'view_video' %}?id={{ other_video.id }}">{{ other_video.title }}
