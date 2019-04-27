@@ -10,11 +10,6 @@ from .models import VideoInfo
 
 import json
 
-def get_view_count(url):
-    import requests
-    response = requests.get(url)
-    json_res = response.json()
-    return int(json_res['countries'][0]['plays'])
 
 def retrieve_view_count(videos):
     url = settings.VIEW_COUNT_URL
@@ -24,11 +19,14 @@ def retrieve_view_count(videos):
         char = '&'
 
     response = requests.get(url)
-    print(url)
     json_data = response.json()
 
-    for video in videos:
-        video.view_count = json_data[video.real_id]
+    success = json_data['success']
+    if success:
+        for video in videos:
+            video.view_count = json_data[video.real_id]
+
+    return success
 
 def home_page(request):
     return redirect(reverse('list_videos'))
@@ -46,13 +44,16 @@ def list_videos(request):
         videos = paginator.page(paginator.num_pages)
     finally:
         # Update view_count for each video objects
-        retrieve_view_count(videos)
+        success = retrieve_view_count(videos)
 
-    # Create url for images stored in cloudinary
-    cloudinary_img_url = \
-        "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
+    if success:
+        # Create url for images stored in cloudinary
+        cloudinary_img_url = \
+            "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
 
-    return render(request, 'list.html', {'videos': videos, 'cloudinary_img_url': cloudinary_img_url})
+        return render(request, 'list.html', {'videos': videos, 'cloudinary_img_url': cloudinary_img_url})
+    else:
+        return HttpResponse(status_code=503) # Service Unavailable
 
 def search_videos(request):
     search_type = request.GET.get('type', None)
@@ -66,9 +67,12 @@ def search_videos(request):
         searched_video_list = VideoInfo.objects.filter(is_disabled=False).filter(performer__icontains=search_value)
 
     # Update view_count for each video objects
-    retrieve_view_count(searched_video_list)
+    success = retrieve_view_count(videos)
     
-    return render(request, 'list.html', {'videos': searched_video_list})
+    if success:
+        return render(request, 'list.html', {'videos': searched_video_list})
+    else:
+        return HttpResponse(status_code=503)
 
 def view_video(request):
     # Get query string
@@ -91,20 +95,23 @@ def view_video(request):
     other_videos = VideoInfo.objects.filter(is_disabled=False).exclude(id=video_id)
 
     # Retrieve other video's view count
-    retrieve_view_count(other_videos)
+    success = retrieve_view_count(other_videos)
 
-    # Create url for images stored in cloudinary
-    cloudinary_img_url = \
-        "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
+    if success:
+        # Create url for images stored in cloudinary
+        cloudinary_img_url = \
+            "https://res.cloudinary.com/%s/image/upload/v1555853606/nogistream" % settings.CLOUDINARY_NAME
 
-    # Render template
-    return render(request, 'view.html', 
-        {
-            'video': video,
-            'other_videos': other_videos,
-            'cloudinary_img_url': cloudinary_img_url
-        }
-    )
+        # Render template
+        return render(request, 'view.html', 
+            {
+                'video': video,
+                'other_videos': other_videos,
+                'cloudinary_img_url': cloudinary_img_url
+            }
+        )
+    else:
+        return HttpResponse(status_code=503)
 
     
 
